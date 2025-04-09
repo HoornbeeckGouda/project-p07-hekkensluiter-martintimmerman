@@ -36,68 +36,44 @@ class PrisonerController extends Controller
     }
     
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'roepnaam' => 'required|string|max:45',
-            'tussenvoegsel' => 'nullable|string|max:10',
-            'achternaam' => 'required|string|max:45',
-            'straat' => 'nullable|string|max:150',
-            'huisnummer' => 'nullable|string|max:3',
-            'toevoeging' => 'nullable|string|max:10',
-            'postcode' => 'nullable|string|max:6',
-            'woonplaats' => 'nullable|string|max:100',
-            'bsn' => 'required|string|max:9', 
-            'delict' => 'required|string|max:255',
-            'foto' => 'required|image|max:2048',
-            'geboortedatum' => 'nullable|date',
-            'datum_arrestatie' => 'required|date',
-            'datum_in_bewaring' => 'required|date',
-            'zaaknummer' => 'required|string|max:255',
-            'cell_id' => 'required|exists:cells,id',
-        ]);
-        
-        
-        // Handle photo upload
-        if ($request->hasFile('foto')) {
-            $photoPath = $request->file('foto')->store('prisoners', 'public');
-            $validated['foto'] = $photoPath;
-        }
-        
-        // Remove cell_id from validated data as it's not a direct attribute of Prisoner
-        $cellId = $validated['cell_id'];
-        unset($validated['cell_id']);
-        
-        // Create the prisoner
-        $prisoner = Prisoner::create($validated);
-        
-        // Create cell assignment
-        CellPrisoner::create([
-            'prisoner_id' => $prisoner->id,
-            'cell_id' => $cellId,
-            'datum_start' => now()->format('Y-m-d'),
-            'tijd_start' => now()->format('H:i:s'),
-        ]);
-        
-        // Create movement record
-        CellMovement::create([
-            'prisoner_id' => $prisoner->id,
-            'to_cell_id' => $cellId,
-            'datum_start' => now()->format('Y-m-d'),
-            'reden' => 'Initial assignment',
-        ]);
-        
-        return redirect()->route('prisoners.index')
-            ->with('success', 'Gedetineerde succesvol geregistreerd.');
+{
+    // Validate the input
+    $validated = $request->validate([
+        'roepnaam' => 'required|string|max:255',
+        'tussenvoegsel' => 'nullable|string|max:255',
+        'achternaam' => 'required|string|max:255',
+        'straat' => 'required|string|max:255',
+        'huisnummer' => 'required|string|max:255',
+        'toevoeging' => 'nullable|string|max:255',
+        'postcode' => 'required|string|max:255',
+        'woonplaats' => 'required|string|max:255',
+        'bsn' => 'required|string|max:255',
+        'delict' => 'required|string|max:255',
+        'foto' => 'required|image|max:2048',
+        'geboortedatum' => 'required|date',
+        'cell_id' => 'required|exists:cells,id',
+        'datum_arrestatie' => 'required|date',
+        'datum_in_bewaring' => 'required|date',
+    ]);
+
+    // Handle file upload
+    if ($request->hasFile('foto')) {
+        $path = $request->file('foto')->store('prisoners', 'public');
+        $validated['foto'] = $path;
     }
-    
-    public function show(Prisoner $prisoner)
-    {
-        $prisoner->load('cells');
-        $currentCell = $prisoner->currentCell();
-        $movements = $prisoner->movements()->with(['fromCell', 'toCell'])->get();
-        
-        return view('prisoners.show', compact('prisoner', 'currentCell', 'movements'));
-    }
+
+    // Create the prisoner record
+    $prisoner = Prisoner::create($validated);
+
+    // Create the cell-prisoner relationship with current date and time
+    $prisoner->cells()->attach($request->cell_id, [
+        'datum_start' => now()->toDateString(),
+        'tijd_start' => now()->format('H:i:s'),
+    ]);
+
+    return redirect()->route('prisoners.index')
+        ->with('success', 'Gevangene succesvol toegevoegd.');
+}
     
     public function edit(Prisoner $prisoner)
     {
@@ -204,7 +180,16 @@ class PrisonerController extends Controller
         return redirect()->route('prisoners.show', $prisoner)
             ->with('success', 'Gedetineerde succesvol verplaatst.');
     }
+    public function show(Prisoner $prisoner)
+{
+    // Load the current cell relationship
+    $prisoner->load('cells');
     
+    // Get the current cell (if any)
+    $currentCell = $prisoner->currentCell();
+    
+    return view('prisoners.show', compact('prisoner', 'currentCell'));
+}
     public function release(Request $request, Prisoner $prisoner)
     {
         $validated = $request->validate([
@@ -228,6 +213,7 @@ class PrisonerController extends Controller
             }
         }
         
+        
         // Create movement record
         CellMovement::create([
             'prisoner_id' => $prisoner->id,
@@ -236,6 +222,7 @@ class PrisonerController extends Controller
             'datum_start' => now()->format('Y-m-d'),
             'reden' => $validated['reden'],
         ]);
+        
         
         return redirect()->route('prisoners.show', $prisoner)
             ->with('success', 'Gedetineerde succesvol vrijgelaten.');
