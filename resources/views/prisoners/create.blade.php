@@ -15,19 +15,25 @@
                     <!-- Roepnaam -->
                     <div class="sm:col-span-1">
                         <label for="roepnaam" class="block text-sm font-medium text-gray-700">Roepnaam</label>
-                        <input type="text" name="roepnaam" id="roepnaam" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        <input type="text" name="roepnaam" id="roepnaam" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('roepnaam') }}" required>
+                        @error('roepnaam')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Tussenvoegsel -->
                     <div class="sm:col-span-1">
                         <label for="tussenvoegsel" class="block text-sm font-medium text-gray-700">Tussenvoegsel</label>
-                        <input type="text" name="tussenvoegsel" id="tussenvoegsel" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" name="tussenvoegsel" id="tussenvoegsel" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('tussenvoegsel') }}">
                     </div>
 
                     <!-- Achternaam -->
                     <div class="sm:col-span-1">
                         <label for="achternaam" class="block text-sm font-medium text-gray-700">Achternaam</label>
-                        <input type="text" name="achternaam" id="achternaam" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        <input type="text" name="achternaam" id="achternaam" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('achternaam') }}" required>
+                        @error('achternaam')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
                 
@@ -35,13 +41,19 @@
                     <!-- BSN -->
                     <div class="sm:col-span-1">
                         <label for="bsn" class="block text-sm font-medium text-gray-700">BSN</label>
-                        <input type="text" name="bsn" id="bsn" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" name="bsn" id="bsn" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('bsn') }}" required>
+                        @error('bsn')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Delict -->
                     <div class="sm:col-span-1">
                         <label for="delict" class="block text-sm font-medium text-gray-700">Delict</label>
-                        <input type="text" name="delict" id="delict" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        <input type="text" name="delict" id="delict" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('delict') }}" required>
+                        @error('delict')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -49,13 +61,16 @@
                     <!-- Geboortedatum -->
                     <div class="sm:col-span-1">
                         <label for="geboortedatum" class="block text-sm font-medium text-gray-700">Geboortedatum</label>
-                        <input type="date" name="geboortedatum" id="geboortedatum" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="date" name="geboortedatum" id="geboortedatum" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('geboortedatum') }}">
                     </div>
 
                     <!-- Foto -->
                     <div class="sm:col-span-1">
                         <label for="foto" class="block text-sm font-medium text-gray-700">Foto</label>
                         <input type="file" name="foto" id="foto" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        @error('foto')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -64,9 +79,12 @@
                     <label for="cell_id" class="block text-sm font-medium text-gray-700">Kies een cel</label>
                     <select id="cell_id" name="cell_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         @foreach($cells as $cell)
-                            <option value="{{ $cell->id }}">{{ $cell->celnummer }} - {{ $cell->afdeling }}</option>
+                            <option value="{{ $cell->id }}" {{ old('cell_id') == $cell->id ? 'selected' : '' }}>{{ $cell->celnummer }} - {{ $cell->afdeling }}</option>
                         @endforeach
                     </select>
+                    @error('cell_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
 

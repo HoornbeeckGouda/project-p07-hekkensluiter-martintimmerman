@@ -46,12 +46,16 @@ class PrisonerController extends Controller
             'toevoeging' => 'nullable|string|max:10',
             'postcode' => 'nullable|string|max:6',
             'woonplaats' => 'nullable|string|max:100',
-            'bsn' => 'nullable|string|max:9',
+            'bsn' => 'required|string|max:9', 
             'delict' => 'required|string|max:255',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'required|image|max:2048',
             'geboortedatum' => 'nullable|date',
+            'datum_arrestatie' => 'required|date',
+            'datum_in_bewaring' => 'required|date',
+            'zaaknummer' => 'required|string|max:255',
             'cell_id' => 'required|exists:cells,id',
         ]);
+        
         
         // Handle photo upload
         if ($request->hasFile('foto')) {
