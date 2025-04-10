@@ -30,7 +30,6 @@
 </td>
                     <td class="px-6 py-4 space-x-2">
                         <a href="{{ route('cells.show', $cell) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded">Details</a>
-                        <a href="{{ route('cells.edit', $cell) }}" class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded">Bewerken</a>
                     </td>
                 </tr>
                 @endforeach

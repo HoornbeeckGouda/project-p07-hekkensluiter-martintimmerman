@@ -22,10 +22,14 @@ class Prisoner extends Model
         'delict',
         'foto',
         'geboortedatum',
+        'datum_arrestatie',
+        'datum_in_bewaring',
     ];
 
     protected $casts = [
         'geboortedatum' => 'date',
+        'datum_arrestatie' => 'date', 
+        'datum_in_bewaring' => 'date',
     ];
 
     public function cells()
@@ -47,6 +51,22 @@ class Prisoner extends Model
     public function movements()
     {
         return $this->hasMany(CellMovement::class);
+    }
+    public function volledigeNaam()
+{
+    return $this->roepnaam 
+        . ($this->tussenvoegsel ? ' ' . $this->tussenvoegsel : '') 
+        . ' ' . $this->achternaam;
+}
+
+
+    public function movementHistory()
+{
+    return $this->hasMany(CellMovement::class, 'prisoner_id');
+}
+    public function logs()
+    {
+        return $this->hasMany(PrisonerLog::class);
     }
 
     public function getFullNameAttribute()

@@ -7,6 +7,7 @@ use App\Http\Controllers\CellController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\UserLogController;
 use Illuminate\Support\Facades\Auth;
 
 // Contact routes
@@ -17,7 +18,8 @@ Route::post('/contact', [ContactController::class, 'handleForm'])->name('contact
 Route::get('/', function () {
     return view('welcome'); 
 });
-
+Route::get('/user-logs', [App\Http\Controllers\UserLogController::class, 'index'])->name('user-logs.index');
+Route::get('/user-logs/{log}', [App\Http\Controllers\UserLogController::class, 'show'])->name('user-logs.show');
 // Dashboard route (controleert of de gebruiker is ingelogd)
 Route::get('/dashboard', function () {
     if (!Auth::check()) {
@@ -35,6 +37,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('prisoners', PrisonerController::class);
     Route::post('/prisoners/{prisoner}/move', [PrisonerController::class, 'move'])->name('prisoners.move');
     Route::post('/prisoners/{prisoner}/release', [PrisonerController::class, 'release'])->name('prisoners.release');
+    
+    // New routes for prisoner logs
+    Route::post('/prisoners/{prisoner}/logs', [PrisonerController::class, 'storeLog'])->name('prisoners.logs.store');
+    Route::delete('/logs/{log}', [PrisonerController::class, 'deleteLog'])->name('prisoners.logs.delete');
     
     // Routes voor cellen
     Route::resource('cells', CellController::class);

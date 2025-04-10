@@ -37,4 +37,9 @@ class CellMovement extends Model
     {
         return $this->belongsTo(Cell::class, 'to_cell_id');
     }
+    
+    public function bewaker()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

@@ -28,4 +28,8 @@ class Cell extends Model
             ->withPivot(['datum_start', 'tijd_start', 'verslag_bewaker'])
             ->withTimestamps();
     }
+public function isOccupied()
+{
+    return $this->currentPrisoners()->count() > 0;
+}
 }
