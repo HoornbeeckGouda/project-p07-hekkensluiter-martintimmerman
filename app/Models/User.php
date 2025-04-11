@@ -4,8 +4,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Role;
+
 
 class User extends Authenticatable
 {
@@ -32,11 +35,37 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-// Add this method to your User model
-public function roles()
-{
-    return $this->belongsToMany(Role::class, 'user_roles');
-}
+
+    /**
+     * Relationship with roles
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    /**
+     * Check if user has a specific role
+     * 
+     * @param string|array $roles
+     * @return bool
+     */
+    public function hasRole($roles)
+    {
+        if (is_string($roles)) {
+            return $this->roles->contains('name', $roles);
+        }
+        
+        // Check if user has any of the given roles
+        foreach ($roles as $role) {
+            if ($this->roles->contains('name', $role)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     /**
      * Get the attributes that should be cast.
      *

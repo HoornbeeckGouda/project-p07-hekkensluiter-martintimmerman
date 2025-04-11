@@ -9,8 +9,12 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // Verwijder de middleware hier
-    // Bijvoorbeeld: $this->middleware('auth');
+    public function __construct()
+    {
+        // Alleen admins en directeuren mogen gebruikers beheren
+        $this->middleware('role:admin,directeur')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('auth');
+    }
 
     public function index()
     {
@@ -74,7 +78,6 @@ class UserController extends Controller
         }
         
         $user->update($userData);
-        
         $user->roles()->sync($validated['roles']);
         
         return redirect()->route('users.index')
@@ -83,7 +86,6 @@ class UserController extends Controller
     
     public function destroy(User $user)
     {
-        // Prevent deleting yourself
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')
                 ->with('error', 'Je kunt je eigen account niet verwijderen.');

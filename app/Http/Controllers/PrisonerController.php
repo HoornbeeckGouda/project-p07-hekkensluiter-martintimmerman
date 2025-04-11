@@ -12,6 +12,16 @@ use App\Http\Controllers\UserLogController;
 
 class PrisonerController extends Controller
 {
+    public function __construct()
+{
+    // First apply auth middleware to all methods
+    $this->middleware('auth');
+    
+    // Block users with 'bewaker' role from accessing create and store methods
+    // Zorg dat je hier de juiste naam gebruikt zoals in Kernel.php geregistreerd
+    $this->middleware(\App\Http\Middleware\BlockRole::class . ':bewaker')->only(['create', 'store']);
+}
+
     public function index(Request $request)
     {
         $query = Prisoner::query();
@@ -30,10 +40,11 @@ class PrisonerController extends Controller
     }
 
     public function create()
-    {
-        $cells = Cell::all();
-        return view('prisoners.create', compact('cells'));
-    }
+{
+    \Log::info('Create method called');
+    $cells = \App\Models\Cell::all();
+    return view('prisoners.create', compact('cells'));
+}
 
     public function store(Request $request)
     {
@@ -55,7 +66,6 @@ class PrisonerController extends Controller
             'datum_in_bewaring' => 'required|date',
         ]);
 
-        // Controleer of de cel bezet is
         $cell = Cell::findOrFail($validated['cell_id']);
         if ($cell->isOccupied()) {
             return back()->withErrors(['cell_id' => 'Deze cel is al bezet.'])->withInput();
@@ -76,21 +86,19 @@ class PrisonerController extends Controller
         return redirect()->route('prisoners.index')->with('success', 'Gevangene succesvol toegevoegd.');
     }
 
-    // In PrisonerController.php, pas de show methode aan
+    public function show(Prisoner $prisoner)
+    {
+        $prisoner->load('cells');
+        $currentCell = $prisoner->currentCell();
 
-public function show(Prisoner $prisoner)
-{
-    $prisoner->load('cells');
-    $currentCell = $prisoner->currentCell();
-    
-    // Haal alleen onbezette cellen op
-    $availableCells = Cell::whereDoesntHave('currentPrisoners')->orWhere('id', $currentCell ? $currentCell->id : 0)->get();
-    
-    // Load logs for the prisoner with pagination
-    $logs = $prisoner->logs()->orderBy('log_date', 'desc')->paginate(10);
-    
-    return view('prisoners.show', compact('prisoner', 'currentCell', 'availableCells', 'logs'));
-}
+        $availableCells = Cell::whereDoesntHave('currentPrisoners')
+            ->orWhere('id', $currentCell ? $currentCell->id : 0)
+            ->get();
+
+        $logs = $prisoner->logs()->orderBy('log_date', 'desc')->paginate(10);
+
+        return view('prisoners.show', compact('prisoner', 'currentCell', 'availableCells', 'logs'));
+    }
 
     public function edit(Prisoner $prisoner)
     {
@@ -120,7 +128,6 @@ public function show(Prisoner $prisoner)
             if ($prisoner->foto) {
                 Storage::disk('public')->delete($prisoner->foto);
             }
-
             $validated['foto'] = $request->file('foto')->store('prisoners', 'public');
         }
 
@@ -132,8 +139,7 @@ public function show(Prisoner $prisoner)
     public function destroy(Prisoner $prisoner)
     {
         if ($prisoner->currentCell()) {
-            return redirect()->route('prisoners.index')
-                ->with('error', 'Kan gedetineerde niet verwijderen omdat deze momenteel in een cel zit.');
+            return redirect()->route('prisoners.index')->with('error', 'Kan gedetineerde niet verwijderen omdat deze momenteel in een cel zit.');
         }
 
         if ($prisoner->foto) {
@@ -146,94 +152,95 @@ public function show(Prisoner $prisoner)
     }
 
     public function move(Request $request, $id)
-{
-    $prisoner = Prisoner::findOrFail($id);
+    {
+        $prisoner = Prisoner::findOrFail($id);
 
-    $validated = $request->validate([
-        'to_cell_id' => 'required|exists:cells,id',
-        'reden' => 'required|string',
-    ]);
-
-    $newCell = Cell::findOrFail($validated['to_cell_id']);
-
-    if ($newCell->isOccupied()) {
-        return back()->withErrors(['to_cell_id' => 'De geselecteerde cel is al bezet.'])->withInput();
-    }
-
-    $currentCell = $prisoner->currentCell();
-
-    if ($currentCell && $currentCell->id == $newCell->id) {
-        return back()->with('error', 'De gevangene zit al in deze cel.');
-    }
-
-    if ($currentCell) {
-        $prisoner->cells()->updateExistingPivot($currentCell->id, [
-            'datum_eind' => now()->toDateString(),
-            'tijd_eind' => now()->format('H:i:s'),
+        $validated = $request->validate([
+            'to_cell_id' => 'required|exists:cells,id',
+            'reden' => 'required|string',
         ]);
-    }
 
-    $prisoner->cells()->attach($newCell->id, [
-        'datum_start' => now()->toDateString(),
-        'tijd_start' => now()->format('H:i:s'),
-    ]);
+        $newCell = Cell::findOrFail($validated['to_cell_id']);
 
-    CellMovement::create([
-        'prisoner_id' => $prisoner->id,
-        'from_cell_id' => $currentCell?->id,
-        'to_cell_id' => $newCell->id,
-        'datum_start' => now()->toDateString(),
-        'reden' => $validated['reden'],
-    ]);
-    $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
-    $toCellInfo = "{$newCell->afdeling} {$newCell->celnummer}";
-    
-    UserLogController::createLog(
-        auth()->id(),
-        'prisoner_moved',
-        "Gevangene {$prisoner->volledigeNaam()} verplaatst van {$fromCellInfo} naar {$toCellInfo}. Reden: {$validated['reden']}",
-        'Prisoner',
-        $prisoner->id
-    );
+        if ($newCell->isOccupied()) {
+            return back()->withErrors(['to_cell_id' => 'De geselecteerde cel is al bezet.'])->withInput();
+        }
 
-    return redirect()->route('prisoners.show', $prisoner)->with('success', 'Gevangene succesvol verplaatst.');
-}
-public function release(Request $request, Prisoner $prisoner)
-{
-    $validated = $request->validate([
-        'reden' => 'required|string|max:255',
-    ]);
+        $currentCell = $prisoner->currentCell();
 
-    $currentCell = $prisoner->currentCell();
+        if ($currentCell && $currentCell->id == $newCell->id) {
+            return back()->with('error', 'De gevangene zit al in deze cel.');
+        }
 
-    if ($currentCell) {
-        $prisoner->cells()->updateExistingPivot($currentCell->id, [
-            'datum_eind' => now()->toDateString(),
-            'tijd_eind' => now()->format('H:i:s'),
+        if ($currentCell) {
+            $prisoner->cells()->updateExistingPivot($currentCell->id, [
+                'datum_eind' => now()->toDateString(),
+                'tijd_eind' => now()->format('H:i:s'),
+            ]);
+        }
+
+        $prisoner->cells()->attach($newCell->id, [
+            'datum_start' => now()->toDateString(),
+            'tijd_start' => now()->format('H:i:s'),
         ]);
+
+        CellMovement::create([
+            'prisoner_id' => $prisoner->id,
+            'from_cell_id' => $currentCell?->id,
+            'to_cell_id' => $newCell->id,
+            'datum_start' => now()->toDateString(),
+            'reden' => $validated['reden'],
+        ]);
+
+        $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
+        $toCellInfo = "{$newCell->afdeling} {$newCell->celnummer}";
+
+        UserLogController::createLog(
+            auth()->id(),
+            'prisoner_moved',
+            "Gevangene {$prisoner->volledigeNaam()} verplaatst van {$fromCellInfo} naar {$toCellInfo}. Reden: {$validated['reden']}",
+            'Prisoner',
+            $prisoner->id
+        );
+
+        return redirect()->route('prisoners.show', $prisoner)->with('success', 'Gevangene succesvol verplaatst.');
     }
 
-    CellMovement::create([
-        'prisoner_id' => $prisoner->id,
-        'from_cell_id' => $currentCell?->id,
-        'to_cell_id' => null,
-        'datum_start' => now()->toDateString(),
-        'reden' => $validated['reden'],
-    ]);
+    public function release(Request $request, Prisoner $prisoner)
+    {
+        $validated = $request->validate([
+            'reden' => 'required|string|max:255',
+        ]);
 
-    // Log de vrijlating
-    $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
-    
-    UserLogController::createLog(
-        auth()->id(),
-        'prisoner_released',
-        "Gevangene {$prisoner->volledigeNaam()} vrijgelaten uit {$fromCellInfo}. Reden: {$validated['reden']}",
-        'Prisoner',
-        $prisoner->id
-    );
+        $currentCell = $prisoner->currentCell();
 
-    return redirect()->route('prisoners.show', $prisoner)->with('success', 'Gedetineerde succesvol vrijgelaten.');
-}
+        if ($currentCell) {
+            $prisoner->cells()->updateExistingPivot($currentCell->id, [
+                'datum_eind' => now()->toDateString(),
+                'tijd_eind' => now()->format('H:i:s'),
+            ]);
+        }
+
+        CellMovement::create([
+            'prisoner_id' => $prisoner->id,
+            'from_cell_id' => $currentCell?->id,
+            'to_cell_id' => null,
+            'datum_start' => now()->toDateString(),
+            'reden' => $validated['reden'],
+        ]);
+
+        $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
+
+        UserLogController::createLog(
+            auth()->id(),
+            'prisoner_released',
+            "Gevangene {$prisoner->volledigeNaam()} vrijgelaten uit {$fromCellInfo}. Reden: {$validated['reden']}",
+            'Prisoner',
+            $prisoner->id
+        );
+
+        return redirect()->route('prisoners.show', $prisoner)->with('success', 'Gedetineerde succesvol vrijgelaten.');
+    }
 
     public function storeLog(Request $request, Prisoner $prisoner)
     {

@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 
 class CellController extends Controller
 {
-    // Verwijder de middleware hier
-    // Bijvoorbeeld: $this->middleware('auth');
+    public function __construct()
+    {
+        // Beperk toegang tot bepaalde acties op basis van rollen
+        $this->middleware('role:admin,directeur,coordinator')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('auth');
+    }
 
     public function index()
     {
@@ -28,7 +32,6 @@ class CellController extends Controller
             'celnummer' => 'required|string|max:4',
         ]);
         
-        // Check if cell already exists
         $exists = Cell::where('afdeling', $validated['afdeling'])
             ->where('celnummer', $validated['celnummer'])
             ->exists();
@@ -66,7 +69,6 @@ class CellController extends Controller
             'celnummer' => 'required|string|max:4',
         ]);
         
-        // Check if cell already exists (excluding current)
         $exists = Cell::where('afdeling', $validated['afdeling'])
             ->where('celnummer', $validated['celnummer'])
             ->where('id', '!=', $cell->id)
@@ -84,7 +86,6 @@ class CellController extends Controller
     
     public function destroy(Cell $cell)
     {
-        // Check if cell is empty
         if ($cell->currentPrisoners()->count() > 0) {
             return redirect()->route('cells.index')
                 ->with('error', 'Kan cel niet verwijderen omdat er gedetineerden in zitten.');

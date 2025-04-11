@@ -33,11 +33,11 @@
                     {{ __('Gevangenen') }}
                 </x-nav-link>
                 
-                <x-nav-link :href="'#bijzonderheden'" class="nav-button bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold no-underline border border-[#EFEBE9] transition hover:bg-[#795548] hover:scale-105 hover:shadow-md">
+                <x-nav-link :href="route('user-logs.index')" class="nav-button bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold no-underline border border-[#EFEBE9] transition hover:bg-[#795548] hover:scale-105 hover:shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {{ __('Informatie') }}
+                    {{ __('Logs') }}
                 </x-nav-link>
             </div>
 
@@ -129,11 +129,11 @@
                 {{ __('Gevangenen') }}
             </x-responsive-nav-link>
             
-            <x-responsive-nav-link :href="'#bijzonderheden'" :active="false" class="block bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold border border-[#EFEBE9] mb-2 transition hover:bg-[#795548] hover:shadow-md">
+            <x-responsive-nav-link :href="route('user-logs.index')" :active="false" class="block bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold border border-[#EFEBE9] mb-2 transition hover:bg-[#795548] hover:shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {{ __('Informatie') }}
+                {{ __('Gebruiker Logs') }}
             </x-responsive-nav-link>
         </div>
 

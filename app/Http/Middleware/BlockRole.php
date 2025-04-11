@@ -6,13 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckRole
+class BlockRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         // Check if user is logged in
@@ -20,14 +15,14 @@ class CheckRole
             return redirect('login');
         }
 
-        // Check if user has any of the required roles
+        // Check if user has any of the blocked roles
         foreach ($roles as $role) {
             if ($request->user()->hasRole($role)) {
-                return $next($request);
+                abort(403, 'Je hebt geen toegang tot deze pagina.');
             }
         }
 
-        // If user doesn't have any of the required roles
-        abort(403, 'Onvoldoende rechten om deze pagina te bekijken.');
+        // If user doesn't have any of the blocked roles, proceed
+        return $next($request);
     }
 }

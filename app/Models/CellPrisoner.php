@@ -37,4 +37,5 @@ class CellPrisoner extends Model
     {
         return $this->belongsTo(Cell::class);
     }
+    
 }
