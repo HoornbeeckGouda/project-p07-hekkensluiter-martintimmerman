@@ -9,7 +9,7 @@
 
     <!-- Knop om een nieuwe gevangene aan te maken -->
     <div class="mb-4">
-        <a href="{{ route('prisoners.create') }}" class="inline-block bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-lg">
+        <a href="{{ route('prisoners.create') }}" class="inline-block bg-brown-600 hover:bg-brown-600 text-white text-xs font-semibold px-4 py-2 rounded-lg">
             Nieuwe Gevangene Toevoegen
         </a>
     </div>

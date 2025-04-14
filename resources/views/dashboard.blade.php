@@ -139,15 +139,7 @@
                     </div>
                     <span class="text-gray-700">Nieuwe Gedetineerde</span>
                 </a>
-                
-                <a href="{{ route('cells.create') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-50 transition-colors">
-                    <div class="rounded-full bg-blue-100 p-2 mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
-                        </svg>
-                    </div>
-                    <span class="text-gray-700">Nieuwe Cel</span>
-                </a>
+               
                 
                 <a href="{{ route('cells.index') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-50 transition-colors">
                     <div class="rounded-full bg-blue-100 p-2 mr-3">
@@ -208,6 +200,14 @@
 @endsection
 
 @section('scripts')
+
+
+
+
+
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {

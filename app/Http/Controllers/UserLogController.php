@@ -10,7 +10,12 @@ use Illuminate\Support\Facades\Auth;
 class UserLogController extends Controller
 {
     
-
+    public function __construct()
+    {
+        // Zorg ervoor dat alleen beheerders toegang hebben
+        $this->middleware('auth'); // Eerst de authenticatie checken
+        $this->middleware(\App\Http\Middleware\BlockRole::class . ':bewaker')->only(['index', 'show']);
+    }
     public function index(Request $request)
     {
         $query = UserLog::with('user');

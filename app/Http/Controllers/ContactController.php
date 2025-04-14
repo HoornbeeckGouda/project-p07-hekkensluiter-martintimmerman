@@ -24,7 +24,7 @@ public function handleForm(Request $request)
         'message' => 'required|string|max:500',
     ]);
 
-    // 'Nep' succesmelding - Hier sturen we geen e-mail, maar geven we een bericht weer
+    // Succesmelding
     return redirect()->route('contact')->with('success', 'Uw bericht is verzonden!');
 }
 

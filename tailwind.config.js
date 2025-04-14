@@ -14,6 +14,12 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                brown: {
+                    500: '#6B4F3B', // Voeg hier je gewenste bruine kleurcode in
+                    600: '#5C4032', // Een donkerdere variant van bruin
+                },
+            },
         },
     },
 

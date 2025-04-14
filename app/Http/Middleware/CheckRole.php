@@ -15,19 +15,18 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // Check if user is logged in
         if (!$request->user()) {
             return redirect('login');
         }
 
-        // Check if user has any of the required roles
+        // COntrole op toegewzen rollen
         foreach ($roles as $role) {
             if ($request->user()->hasRole($role)) {
                 return $next($request);
             }
         }
 
-        // If user doesn't have any of the required roles
+        // Als gebruiker geen rol heeft
         abort(403, 'Onvoldoende rechten om deze pagina te bekijken.');
     }
 }

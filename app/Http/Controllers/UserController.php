@@ -16,18 +16,21 @@ class UserController extends Controller
         $this->middleware('auth');
     }
 
+    //lijst van alle gebruikers met hun rollen
     public function index()
     {
         $users = User::with('roles')->paginate(10);
         return view('users.index', compact('users'));
     }
     
+    // nieuwe gebruiker aan maken
     public function create()
     {
         $roles = Role::all();
         return view('users.create', compact('roles'));
     }
     
+    // Sla nieuwe gebruiker op
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -38,18 +41,21 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
         ]);
         
+        // Maak gebruiker aan
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
         
+        // Koppel rollen aan gebruiker
         $user->roles()->attach($validated['roles']);
         
         return redirect()->route('users.index')
             ->with('success', 'Gebruiker succesvol aangemaakt.');
     }
     
+    // formulier bestaande gebruiker te bewerken
     public function edit(User $user)
     {
         $roles = Role::all();
@@ -58,6 +64,7 @@ class UserController extends Controller
         return view('users.edit', compact('user', 'roles', 'userRoles'));
     }
     
+    //  de gegevens van een gebruiker bij
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -68,6 +75,7 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
         ]);
         
+        // Alleen wachtwoord updaten als een nieuwe is 
         $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -84,6 +92,7 @@ class UserController extends Controller
             ->with('success', 'Gebruiker succesvol bijgewerkt.');
     }
     
+    // Verwijder een gebruiker behalve als ingelogd  is
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {

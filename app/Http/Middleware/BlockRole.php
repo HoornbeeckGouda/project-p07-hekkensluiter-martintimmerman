@@ -10,19 +10,19 @@ class BlockRole
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // Check if user is logged in
+    
         if (!$request->user()) {
             return redirect('login');
         }
 
-        // Check if user has any of the blocked roles
+        // Controlleer op geblokkeerde rol
         foreach ($roles as $role) {
             if ($request->user()->hasRole($role)) {
                 abort(403, 'Je hebt geen toegang tot deze pagina.');
+                
             }
         }
-
-        // If user doesn't have any of the blocked roles, proceed
+        
         return $next($request);
     }
 }

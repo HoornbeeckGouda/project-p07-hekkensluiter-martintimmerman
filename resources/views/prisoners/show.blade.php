@@ -78,26 +78,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Celtoewijzing Tabel -->
-        <table class="min-w-full mt-4 border-collapse">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2 border text-left">Vleugel</th>
-                    <th class="px-4 py-2 border text-left">Celnummer</th>
-                    <th class="px-4 py-2 border text-left">Reden Celtoewijzing</th>
-                    <th class="px-4 py-2 border text-left">Datum Toewijzing</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="px-4 py-2 border">{{ $currentCell->afdeling ?? 'Onbekend' }}</td>
-                    <td class="px-4 py-2 border">{{ $currentCell->celnummer ?? 'Onbekend' }}</td>
-                    <td class="px-4 py-2 border">Toewijzing wegens arrestatie</td>
-                    <td class="px-4 py-2 border">{{ $prisoner->datum_in_bewaring->format('d-m-Y') }}</td>
-                </tr>
-            </tbody>
-        </table>
         
         <!-- Logs Sectie (NIEUW) -->
         <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
@@ -132,7 +112,7 @@
                         <textarea id="description" name="description" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Voer hier een gedetailleerde beschrijving in..."></textarea>
                     </div>
                     <div class="mt-4 text-right">
-                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md">
+                        <button type="submit" class="bg-brown-500 hover:bg-brown-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md">
                             Log Toevoegen
                         </button>
                     </div>
@@ -188,6 +168,7 @@
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
+                                    
                                 </form>
                             </td>
                         </tr>
@@ -206,37 +187,50 @@
         </div>
         
         <!-- Formulier voor het Verplaatsen van de Gevangene -->
-        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
-            <h3 class="text-lg font-semibold text-gray-900">Verplaats Gevangene</h3>
-            <p class="text-sm text-gray-500">Gebruik dit formulier om de gevangene naar een andere cel te verplaatsen.</p>
+<div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+    <h3 class="text-lg font-semibold text-gray-900">Verplaats Gevangene</h3>
+    <p class="text-sm text-gray-500">Gebruik dit formulier om de gevangene naar een andere cel te verplaatsen.</p>
 
-            <form action="{{ route('prisoners.move', $prisoner->id) }}" method="POST">
-                @csrf
-                @method('POST')
+    <form action="{{ route('prisoners.move', $prisoner->id) }}" method="POST">
+        @csrf
+        @method('POST')
 
-                <!-- Reden voor Verplaatsing -->
-                <div class="mb-4">
-                    <label for="reden" class="block text-sm font-medium text-gray-700">Reden voor Verplaatsing</label>
-                    <textarea id="reden" name="reden" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
-                </div>
+        <!-- Reden voor Verplaatsing -->
+        <div class="mb-4">
+            <label for="reden" class="block text-sm font-medium text-gray-700">Reden voor Verplaatsing</label>
+            <textarea id="reden" name="reden" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      @if(auth()->user()->hasRole('bewaker')) disabled @endif
+                      required></textarea>
+        </div>
 
-                <!-- Nieuwe Cel Selectie -->
-                <div class="mb-4">
-                    <label for="to_cell_id" class="block text-sm font-medium text-gray-700">Nieuwe Cel</label>
-                    <select name="to_cell_id" id="to_cell_id" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="" disabled selected>Selecteer een cel</option>
-                        @foreach($availableCells as $cell)
-                            @if(!$currentCell || $cell->id != $currentCell->id)
-                                <option value="{{ $cell->id }}">{{ $cell->afdeling }}, Cel {{ $cell->celnummer }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
+        <!-- Nieuwe Cel Selectie -->
+        <div class="mb-4">
+            <label for="to_cell_id" class="block text-sm font-medium text-gray-700">Nieuwe Cel</label>
+            <select name="to_cell_id" id="to_cell_id" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <option value="" disabled selected>Selecteer een cel</option>
+                @foreach($availableCells as $cell)
+                    @if(!$currentCell || $cell->id != $currentCell->id)
+                        <option value="{{ $cell->id }}">{{ $cell->afdeling }}, Cel {{ $cell->celnummer }}</option>
+                    @endif
+                @endforeach
+            </select>
+        </div>
 
-                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-6 py-3 rounded-lg shadow-md">
-                    Verplaats Gevangene naar Andere Cel
-                </button>
-            </form>
+        <button type="submit" class="bg-brown-500 hover:bg-brown-600 text-white text-sm font-semibold px-6 py-3 rounded-lg shadow-md">
+            Verplaats Gevangene naar Andere Cel
+        </button>
+        
+    </form>
+</div><form method="POST" action="{{ route('prisoners.release', $prisoner->id) }}">
+    @csrf
+    <button type="submit"
+        onclick="return confirm('Weet je zeker dat je deze gevangene wilt vrijlaten?')"
+        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+        Laat gevangene vrij
+    </button>
+</form>
+
+
         </div>
 
         <!-- Bewegingshistorie Tabel -->

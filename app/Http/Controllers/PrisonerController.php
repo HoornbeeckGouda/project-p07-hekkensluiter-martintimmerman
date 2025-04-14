@@ -9,21 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\PrisonerLog;
 use App\Http\Controllers\UserLogController;
+use Illuminate\Support\Facades\Log;
 
 class PrisonerController extends Controller
 {
     public function __construct()
-{
-    // First apply auth middleware to all methods
-    $this->middleware('auth');
-    
-    // Block users with 'bewaker' role from accessing create and store methods
-    // Zorg dat je hier de juiste naam gebruikt zoals in Kernel.php geregistreerd
-    $this->middleware(\App\Http\Middleware\BlockRole::class . ':bewaker')->only(['create', 'store']);
-}
+    {
+        // Vereist authenticatie voor alle methodes
+        $this->middleware('auth');
+
+        // Blokkeer 'bewaker'-rol voor create en store methodes
+        $this->middleware(\App\Http\Middleware\BlockRole::class . ':bewaker,')->only(['create', 'store']);
+    }
 
     public function index(Request $request)
     {
+        // Zoek/filter op naam of BSN
         $query = Prisoner::query();
 
         if ($request->has('search')) {
@@ -40,14 +41,16 @@ class PrisonerController extends Controller
     }
 
     public function create()
-{
-    \Log::info('Create method called');
-    $cells = \App\Models\Cell::all();
-    return view('prisoners.create', compact('cells'));
-}
+    {
+        // Toon formulier voor nieuwe gevangene
+        Log::info('Create method called');
+        $cells = Cell::all();
+        return view('prisoners.create', compact('cells'));
+    }
 
     public function store(Request $request)
     {
+        // Valideer en sla een nieuwe gevangene op
         $validated = $request->validate([
             'roepnaam' => 'required|string|max:255',
             'tussenvoegsel' => 'nullable|string|max:255',
@@ -78,6 +81,7 @@ class PrisonerController extends Controller
 
         $prisoner = Prisoner::create($validated);
 
+        // Koppel gevangene aan gekozen cel
         $prisoner->cells()->attach($validated['cell_id'], [
             'datum_start' => now()->toDateString(),
             'tijd_start' => now()->format('H:i:s'),
@@ -88,6 +92,7 @@ class PrisonerController extends Controller
 
     public function show(Prisoner $prisoner)
     {
+        // Toon details van gevangene inclusief cel en logs
         $prisoner->load('cells');
         $currentCell = $prisoner->currentCell();
 
@@ -102,6 +107,7 @@ class PrisonerController extends Controller
 
     public function edit(Prisoner $prisoner)
     {
+        // Toon bewerkformulier voor gevangene
         $cells = Cell::all();
         $currentCell = $prisoner->currentCell();
         return view('prisoners.edit', compact('prisoner', 'cells', 'currentCell'));
@@ -109,6 +115,7 @@ class PrisonerController extends Controller
 
     public function update(Request $request, Prisoner $prisoner)
     {
+        // Update gegevens van gevangene
         $validated = $request->validate([
             'roepnaam' => 'required|string|max:45',
             'tussenvoegsel' => 'nullable|string|max:10',
@@ -138,6 +145,7 @@ class PrisonerController extends Controller
 
     public function destroy(Prisoner $prisoner)
     {
+        // Verwijder gevangene als hij niet in een cel zit
         if ($prisoner->currentCell()) {
             return redirect()->route('prisoners.index')->with('error', 'Kan gedetineerde niet verwijderen omdat deze momenteel in een cel zit.');
         }
@@ -153,7 +161,13 @@ class PrisonerController extends Controller
 
     public function move(Request $request, $id)
     {
+        // Verplaats gevangene naar een andere cel
         $prisoner = Prisoner::findOrFail($id);
+
+        // Bewakers mogen dit niet
+        if (auth()->user()->hasRole('bewaker')) {
+            return redirect()->route('prisoners.show', $prisoner)->with('error', 'Je hebt geen toestemming om deze actie uit te voeren.');
+        }
 
         $validated = $request->validate([
             'to_cell_id' => 'required|exists:cells,id',
@@ -161,7 +175,6 @@ class PrisonerController extends Controller
         ]);
 
         $newCell = Cell::findOrFail($validated['to_cell_id']);
-
         if ($newCell->isOccupied()) {
             return back()->withErrors(['to_cell_id' => 'De geselecteerde cel is al bezet.'])->withInput();
         }
@@ -172,6 +185,7 @@ class PrisonerController extends Controller
             return back()->with('error', 'De gevangene zit al in deze cel.');
         }
 
+        // Sluit huidige celperiode af
         if ($currentCell) {
             $prisoner->cells()->updateExistingPivot($currentCell->id, [
                 'datum_eind' => now()->toDateString(),
@@ -179,11 +193,13 @@ class PrisonerController extends Controller
             ]);
         }
 
+        // Koppel nieuwe cel
         $prisoner->cells()->attach($newCell->id, [
             'datum_start' => now()->toDateString(),
             'tijd_start' => now()->format('H:i:s'),
         ]);
 
+        // Log de verplaatsing
         CellMovement::create([
             'prisoner_id' => $prisoner->id,
             'from_cell_id' => $currentCell?->id,
@@ -192,6 +208,7 @@ class PrisonerController extends Controller
             'reden' => $validated['reden'],
         ]);
 
+        // Sla actie op in gebruikerslog
         $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
         $toCellInfo = "{$newCell->afdeling} {$newCell->celnummer}";
 
@@ -208,12 +225,14 @@ class PrisonerController extends Controller
 
     public function release(Request $request, Prisoner $prisoner)
     {
+        // Laat gevangene vrij
         $validated = $request->validate([
             'reden' => 'required|string|max:255',
         ]);
 
         $currentCell = $prisoner->currentCell();
 
+        // Sluit huidige celperiode af
         if ($currentCell) {
             $prisoner->cells()->updateExistingPivot($currentCell->id, [
                 'datum_eind' => now()->toDateString(),
@@ -221,6 +240,7 @@ class PrisonerController extends Controller
             ]);
         }
 
+        // Registreer als verplaatsing naar "geen cel"
         CellMovement::create([
             'prisoner_id' => $prisoner->id,
             'from_cell_id' => $currentCell?->id,
@@ -229,6 +249,7 @@ class PrisonerController extends Controller
             'reden' => $validated['reden'],
         ]);
 
+        // Log de vrijlating
         $fromCellInfo = $currentCell ? "{$currentCell->afdeling} {$currentCell->celnummer}" : "geen cel";
 
         UserLogController::createLog(
@@ -244,6 +265,7 @@ class PrisonerController extends Controller
 
     public function storeLog(Request $request, Prisoner $prisoner)
     {
+        // Voeg logregel toe aan gevangene
         $validated = $request->validate([
             'log_type' => 'required|string|max:50',
             'description' => 'required|string',
@@ -263,6 +285,7 @@ class PrisonerController extends Controller
 
     public function deleteLog(Request $request, PrisonerLog $log)
     {
+        // Verwijder logregel van gevangene
         $prisonerId = $log->prisoner_id;
         $log->delete();
 

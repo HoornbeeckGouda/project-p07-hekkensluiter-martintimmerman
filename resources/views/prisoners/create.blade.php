@@ -138,6 +138,7 @@
                         @error('cell_id')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                        
                     </div>
                 </div>
             </div>
@@ -145,6 +146,7 @@
                 <button type="submit" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-6 py-3 rounded-lg">
                     Gevangene Toevoegen
                 </button>
+                
             </div>
         </form>
     </div>

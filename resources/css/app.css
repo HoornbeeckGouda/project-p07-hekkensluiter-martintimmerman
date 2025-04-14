@@ -166,30 +166,30 @@ a.contact-btn:hover {
 /* Container voor de tekst en afbeelding naast elkaar */
 .info-container {
     display: flex;
-    gap: 16px; /* Ruimte tussen tekst en afbeelding */
-    align-items: center; /* Zorgt ervoor dat de tekst en afbeelding op dezelfde hoogte staan */
+    gap: 16px; 
+    align-items: center; 
 }
 
 /* Zorgt ervoor dat de tekst links blijft en genoeg ruimte krijgt */
 .info-text {
-    flex: 1; /* Tekst neemt de beschikbare ruimte in */
-    min-width: 300px; /* Zorg ervoor dat de tekst niet te smal wordt */
+    flex: 1; 
+    min-width: 300px;
 }
 
 /* Zorgt ervoor dat de afbeelding rechts blijft met een vaste hoogte */
 .info-image {
-    flex-shrink: 0; /* Zorgt ervoor dat de afbeelding niet krimpt */
-    width: 50%; /* Afbeelding neemt 50% van de breedte in */
+    flex-shrink: 0; 
+    width: 50%; 
 }
 
 /* Maak de layout responsief: als het scherm kleiner is dan 768px, stapel tekst en afbeelding */
 @media (max-width: 768px) {
     .info-container {
-        flex-direction: column; /* Op kleinere schermen komt de afbeelding onder de tekst */
+        flex-direction: column;
     }
     .info-image {
-        width: 100%; /* De afbeelding neemt de volledige breedte in */
-        margin-top: 16px; /* Voeg ruimte toe boven de afbeelding */
+        width: 100%;
+        margin-top: 16px; 
     }
 }
 

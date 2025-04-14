@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $occupiedCells = Cell::whereHas('currentPrisoners')->count();
         $availableCells = $totalCells - $occupiedCells;
         
-        // Recente celverplaatsingen (laatste 7 dagen)
+        // Recente celverplaatsingen
         $recentMovements = CellMovement::where('datum_start', '>=', Carbon::now()->subDays(7))->count();
         $cellMovements = CellMovement::with(['prisoner', 'fromCell', 'toCell'])
             ->orderBy('datum_start', 'desc')
@@ -35,7 +35,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
         
-        // Data voor bezetting per afdeling grafiek
+        // Data  bezetting per afdeling 
         $sectionData = Cell::select('afdeling', 
                 DB::raw('COUNT(*) as total'),
                 DB::raw('SUM(CASE WHEN EXISTS (
