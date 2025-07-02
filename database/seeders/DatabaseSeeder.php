@@ -55,6 +55,8 @@ class DatabaseSeeder extends Seeder
         ]);
         $bewakerRole = Role::where('name', 'bewaker')->first();
         $bewaker->roles()->attach($bewakerRole);
+
+        
     }
 }
 
