@@ -4,11 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Role;
-
 
 class User extends Authenticatable
 {
@@ -24,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_active', // Voor het deactiveren van gebruikers
     ];
 
     /**
@@ -67,6 +66,57 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has permission (via roles)
+     * 
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission($permission)
+    {
+        foreach ($this->roles as $role) {
+            if ($role->hasPermission($permission)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user has any of the given permissions
+     * 
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAnyPermission($permissions)
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user has all given permissions
+     * 
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAllPermissions($permissions)
+    {
+        foreach ($permissions as $permission) {
+            if (!$this->hasPermission($permission)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -76,6 +126,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
+    
 }

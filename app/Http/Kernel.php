@@ -44,5 +44,12 @@ class Kernel extends HttpKernel
        'blockBewaker' => \App\Http\Middleware\BlockBewakerMiddleware::class,
         'blockRole' => \App\Http\Middleware\BlockRole::class,
         'role' => \App\Http\Middleware\CheckRole::class,
+        'permission' => \App\Http\Middleware\CheckPermission::class,
+        
     ];
+    
+    // In app/Http/Kernel.php
+protected $middlewareAliases = [
+    'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+];
 }
