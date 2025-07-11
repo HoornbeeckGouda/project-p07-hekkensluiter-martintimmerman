@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    scroll-behavior: smooth;
+}
+
+#content {
+    scroll-margin-top: 150px;
+}
+
+body {
+    background-color: rgb(251, 235, 223); 
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; 
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== Header styling ===== */
+header {
+    background-color: rgb(132, 102, 92);
+    color: white;
+    padding: 16px 32px;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Gecentreerde navigatieknoppen */
+.nav-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* Login button rechts */
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Navigatieknoppen */
+.nav-button {
+    background-color: #876d54;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid white;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: #8B5E3C;
+    transform: scale(1.05);
+}
+
+/* Login button */
+.login-button {
+    background-color: #876d54;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 2px solid white;
+    font-weight: 600;
+    transition: all 0.3s ease-in-out;
+}
+
+.login-button:hover {
+    background-color: #8B5E3C; 
+    color: #EAD7C0;
+    border: 2px solid #EAD7C0;
+}
+
+/* Logo */
+.logo {
+    max-height: 65px; 
+    width: auto;
+    border-radius: 8px;
+    border: 2px solid white;
+    padding: 2px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
+/* ===== Content en algemene secties ===== */
+.content {
+    margin-top: 100px; 
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+footer {
+    background-color: rgb(132, 102, 92);
+    color: white;
+    padding: 16px 32px;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+#footer2 {
+    background-color: rgb(132, 102, 92);
+    color: white;
+    text-align: center;
+    padding: 16px 32px;
+    position: relative; /* Zorgt ervoor dat de footer normaal wordt gepositioneerd */
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-top: -160px; /* Voeg ruimte onder de footer toe */
+}
+
+
+
+.btn-contact {
+    color: #3182CE;
+    text-decoration: underline;
+}
+
+/* ===== Lees meer & contact knoppen ===== */
+a.read-more-btn,
+a.contact-btn {
+    background-color: #896d58;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+a.read-more-btn:hover,
+a.contact-btn:hover {
+    background-color: #8B5E3C;
+    transform: scale(1.05);
+}
+/* Container voor de tekst en afbeelding naast elkaar */
+.info-container {
+    display: flex;
+    gap: 16px; 
+    align-items: center; 
+}
+
+/* Zorgt ervoor dat de tekst links blijft en genoeg ruimte krijgt */
+.info-text {
+    flex: 1; 
+    min-width: 300px;
+}
+
+/* Zorgt ervoor dat de afbeelding rechts blijft met een vaste hoogte */
+.info-image {
+    flex-shrink: 0; 
+    width: 50%; 
+}
+
+/* Maak de layout responsief: als het scherm kleiner is dan 768px, stapel tekst en afbeelding */
+@media (max-width: 768px) {
+    .info-container {
+        flex-direction: column;
+    }
+    .info-image {
+        width: 100%;
+        margin-top: 16px; 
+    }
+}
+
+/* Pijl naar beneden in knoppen */
+i {
+    margin-left: 8px;
+}
