@@ -4,22 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inloggen - Hekkensluiter</title>
-    <!-- Voeg hier de link naar app.css toe -->
     @vite('resources/css/app.css')
 </head>
 <body class="">
-
-    <!-- Header -->
     <header class="bg-brown-600 text-white py-4">
         <div class="header-container max-w-screen-lg mx-auto flex justify-between items-center">
-            <!-- Logo met de klikbare link naar de homepagina -->
             <a href="{{ url('/') }}">
                 <img src="{{ asset('images/logohoornhack.png') }}" alt="Hekkensluiter Logo" class="logo">
             </a>
-
             <div class="nav-right">
-            <a href="{{ route('login') }}" class="login-button">Inloggen</a>
-        </div>
+                <a href="{{ route('login') }}" class="login-button">Inloggen</a>
+            </div>
         </div>
     </header>
 
@@ -40,12 +35,7 @@
                 <!-- Password -->
                 <div class="mt-4">
                     <x-input-label for="password" :value="__('Password')" />
-
-                    <x-text-input id="password" class="block mt-1 w-full"
-                                    type="password"
-                                    name="password"
-                                    required autocomplete="current-password" />
-
+                    <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 
@@ -71,6 +61,5 @@
             </form>
         </x-guest-layout>
     </div>
-
 </body>
 </html>

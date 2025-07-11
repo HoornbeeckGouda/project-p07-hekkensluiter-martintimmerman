@@ -19,3 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
     
+return [
+    'providers' => [
+        // Other providers...
+        Laravel\Fortify\FortifyServiceProvider::class,
+    ],
+];

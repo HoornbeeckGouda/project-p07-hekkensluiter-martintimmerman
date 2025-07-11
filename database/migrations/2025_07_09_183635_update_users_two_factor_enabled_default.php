@@ -8,21 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-         Schema::table('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('two_factor_code')->nullable();
-            $table->dateTime('two_factor_expires_at')->nullable();
-
+        Schema::table('users', function (Blueprint $table) {
+            $table->boolean('two_factor_enabled')->default(true)->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['two_factor_code', 'two_factor_expires_at']);
+            $table->boolean('two_factor_enabled')->default(false)->change();
         });
     }
 };

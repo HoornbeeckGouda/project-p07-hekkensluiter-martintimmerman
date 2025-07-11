@@ -78,16 +78,18 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Logs Sectie (NIEUW) -->
+
+        <!-- Logs Sectie -->
+        @if(auth()->user()->hasPermission('prisoners.logs.view') || auth()->user()->hasRole('admin'))
         <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
             <h3 class="text-lg font-semibold text-gray-900">Logboek Bewaker</h3>
             <p class="text-sm text-gray-500">Logs en aantekeningen over de gevangene.</p>
 
             <!-- Log Toevoegen Formulier -->
+            @if(auth()->user()->hasPermission('prisoners.logs.create') || auth()->user()->hasRole('admin'))
             <div class="bg-white p-4 rounded-md shadow-sm mt-4">
                 <h4 class="font-medium text-gray-800 mb-3">Nieuwe Log Toevoegen</h4>
-                <form action="{{ route('prisoners.logs.store', $prisoner->id) }}" method="POST">
+                <form action="{{ route('prisoners.logs.store', $prisoner->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -111,6 +113,16 @@
                         <label for="description" class="block text-sm font-medium text-gray-700">Beschrijving</label>
                         <textarea id="description" name="description" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Voer hier een gedetailleerde beschrijving in..."></textarea>
                     </div>
+                    <div class="mt-4">
+                        <label for="bijlage" class="block text-sm font-medium text-gray-700">Bijlage</label>
+                        <input type="file" id="bijlage" name="bijlage" class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+                        <select name="bijlage_type" class="mt-2 p-2 w-full border border-gray-300 rounded-md">
+                            <option value="" disabled selected>Type selecteren</option>
+                            <option value="photo">Foto</option>
+                            <option value="video">Video</option>
+                            <option value="document">Document</option>
+                        </select>
+                    </div>
                     <div class="mt-4 text-right">
                         <button type="submit" class="bg-brown-500 hover:bg-brown-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md">
                             Log Toevoegen
@@ -118,6 +130,7 @@
                     </div>
                 </form>
             </div>
+            @endif
 
             <!-- Logs Tabel -->
             <div class="mt-6">
@@ -128,8 +141,11 @@
                             <th class="px-4 py-2 border text-left">Datum</th>
                             <th class="px-4 py-2 border text-left">Type</th>
                             <th class="px-4 py-2 border text-left">Beschrijving</th>
+                            <th class="px-4 py-2 border text-left">Bijlage</th>
                             <th class="px-4 py-2 border text-left">Bewaker</th>
+                            @if(auth()->user()->hasPermission('prisoners.logs.delete') || auth()->user()->hasRole('admin'))
                             <th class="px-4 py-2 border text-left">Acties</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -158,7 +174,15 @@
                                 @endswitch
                             </td>
                             <td class="px-4 py-2 border">{{ $log->description }}</td>
+                            <td class="px-4 py-2 border">
+                                @if($log->bijlage)
+                                    <a href="{{ route('files.view', ['type' => 'logs', 'filename' => $log->bijlage]) }}" target="_blank" class="text-blue-500 hover:underline">{{ $log->bijlage_type }}</a>
+                                @else
+                                    Geen
+                                @endif
+                            </td>
                             <td class="px-4 py-2 border">{{ $log->user->name ?? 'Onbekend' }}</td>
+                            @if(auth()->user()->hasPermission('prisoners.logs.delete') || auth()->user()->hasRole('admin'))
                             <td class="px-4 py-2 border">
                                 <form action="{{ route('prisoners.logs.delete', $log->id) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze log wilt verwijderen?');">
                                     @csrf
@@ -168,15 +192,15 @@
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    
                                 </form>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
                 <div class="mt-4">
-                    {{ $logs->links() }} <!-- Paginering -->
+                    {{ $logs->links() }}
                 </div>
                 @else
                 <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-600">
@@ -185,100 +209,304 @@
                 @endif
             </div>
         </div>
-        
-        <!-- Formulier voor het Verplaatsen van de Gevangene -->
-<div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
-    <h3 class="text-lg font-semibold text-gray-900">Verplaats Gevangene</h3>
-    <p class="text-sm text-gray-500">Gebruik dit formulier om de gevangene naar een andere cel te verplaatsen.</p>
+        @endif
 
-    <form action="{{ route('prisoners.move', $prisoner->id) }}" method="POST">
-        @csrf
-        @method('POST')
+        <!-- Antecedenten Sectie -->
+        @if(auth()->user()->hasPermission('prisoners.antecedents.view') || auth()->user()->hasRole('admin'))
+        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-900">Antecedenten</h3>
+            <p class="text-sm text-gray-500">Overzicht van eerdere delicten en bewijsmateriaal.</p>
 
-        <!-- Reden voor Verplaatsing -->
-        <div class="mb-4">
-            <label for="reden" class="block text-sm font-medium text-gray-700">Reden voor Verplaatsing</label>
-            <textarea id="reden" name="reden" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                      @if(auth()->user()->hasRole('bewaker')) disabled @endif
-                      required></textarea>
+            <!-- Formulier voor nieuw antecedent -->
+            @if(auth()->user()->hasPermission('prisoners.antecedents.create') || auth()->user()->hasRole('admin'))
+            <div class="bg-white p-4 rounded-md shadow-sm mt-4">
+                <h4 class="font-medium text-gray-800 mb-3">Nieuw Antecedent Toevoegen</h4>
+                <form action="{{ route('prisoners.antecedents.store', $prisoner->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="delict" class="block text-sm font-medium text-gray-700">Delict</label>
+                            <input type="text" id="delict" name="delict" class="mt-1 p-2 w-full border border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="datum_delict" class="block text-sm font-medium text-gray-700">Datum Delict</label>
+                            <input type="date" id="datum_delict" name="datum_delict" class="mt-1 p-2 w-full border border-gray-300 rounded-md" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="beschrijving" class="block text-sm font-medium text-gray-700">Beschrijving</label>
+                        <textarea id="beschrijving" name="beschrijving" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="bewijsmateriaal" class="block text-sm font-medium text-gray-700">Bewijsmateriaal</label>
+                        <input type="file" id="bewijsmateriaal" name="bewijsmateriaal" class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+                        <select name="bewijsmateriaal_type" class="mt-2 p-2 w-full border border-gray-300 rounded-md">
+                            <option value="" disabled selected>Type selecteren</option>
+                            <option value="photo">Foto</option>
+                            <option value="video">Video</option>
+                            <option value="document">Document</option>
+                        </select>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                            Antecedent Toevoegen
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @endif
+
+            <!-- Tabel met antecedenten -->
+            @if($prisoner->antecedents->count() > 0)
+            <table class="min-w-full mt-4 border-collapse bg-white">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 border text-left">Delict</th>
+                        <th class="px-4 py-2 border text-left">Datum</th>
+                        <th class="px-4 py-2 border text-left">Beschrijving</th>
+                        <th class="px-4 py-2 border text-left">Bewijsmateriaal</th>
+                        @if(auth()->user()->hasPermission('prisoners.antecedents.delete') || auth()->user()->hasRole('admin'))
+                        <th class="px-4 py-2 border text-left">Acties</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($prisoner->antecedents as $antecedent)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 border">{{ $antecedent->delict }}</td>
+                        <td class="px-4 py-2 border">{{ $antecedent->datum_delict->format('d-m-Y') }}</td>
+                        <td class="px-4 py-2 border">{{ $antecedent->beschrijving ?? 'Geen' }}</td>
+                        <td class="px-4 py-2 border">
+                            @if($antecedent->bewijsmateriaal)
+    <a href="{{ route('files.view', ['type' => 'antecedents', 'filename' => basename($antecedent->bewijsmateriaal)]) }}" target="_blank" class="text-blue-500 hover:underline">{{ $antecedent->bewijsmateriaal_type }}</a>
+@else
+    Geen
+@endif
+                        </td>
+                        @if(auth()->user()->hasPermission('prisoners.antecedents.delete') || auth()->user()->hasRole('admin'))
+                        <td class="px-4 py-2 border">
+                            <form action="{{ route('prisoners.antecedents.delete', $antecedent->id) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit antecedent wilt verwijderen?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                        @endif
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-600">
+                Geen antecedenten beschikbaar.
+            </div>
+            @endif
         </div>
+        @endif
 
-        <!-- Nieuwe Cel Selectie -->
-        <div class="mb-4">
-            <label for="to_cell_id" class="block text-sm font-medium text-gray-700">Nieuwe Cel</label>
-            <select name="to_cell_id" id="to_cell_id" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                <option value="" disabled selected>Selecteer een cel</option>
-                @foreach($availableCells as $cell)
-                    @if(!$currentCell || $cell->id != $currentCell->id)
-                        <option value="{{ $cell->id }}">{{ $cell->afdeling }}, Cel {{ $cell->celnummer }}</option>
-                    @endif
-                @endforeach
-            </select>
+        <!-- Verhoren Sectie -->
+        @if(auth()->user()->hasPermission('prisoners.interrogations.view') || auth()->user()->hasRole('admin'))
+        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-900">Verhoren en Gespreksverslagen</h3>
+            <p class="text-sm text-gray-500">Overzicht van verhoren en gespreksverslagen van de gevangene.</p>
+
+            <!-- Formulier voor nieuw verhoor -->
+            @if(auth()->user()->hasPermission('prisoners.interrogations.create') || auth()->user()->hasRole('admin'))
+            <div class="bg-white p-4 rounded-md shadow-sm mt-4">
+                <h4 class="font-medium text-gray-800 mb-3">Nieuw Verhoor Toevoegen</h4>
+                <form action="{{ route('prisoners.interrogations.store', $prisoner->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="datum_tijd" class="block text-sm font-medium text-gray-700">Datum en Tijd</label>
+                            <input type="datetime-local" id="datum_tijd" name="datum_tijd" class="mt-1 p-2 w-full border border-gray-300 rounded-md" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="verslag" class="block text-sm font-medium text-gray-700">Verslag</label>
+                        <textarea id="verslag" name="verslag" rows="4" class="mt-1 p-2 w-full border border-gray-300 rounded-md" required></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label for="bijlage" class="block text-sm font-medium text-gray-700">Bijlage</label>
+                        <input type="file" id="bijlage" name="bijlage" class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+                        <select name="bijlage_type" class="mt-2 p-2 w-full border border-gray-300 rounded-md">
+                            <option value="" disabled selected>Type selecteren</option>
+                            <option value="audio">Audio</option>
+                            <option value="video">Video</option>
+                            <option value="document">Document</option>
+                        </select>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                            Verhoor Toevoegen
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @endif
+
+            <!-- Tabel met verhoren -->
+            @if($prisoner->interrogations->count() > 0)
+            <table class="min-w-full mt-4 border-collapse bg-white">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 border text-left">Datum en Tijd</th>
+                        <th class="px-4 py-2 border text-left">Verslag</th>
+                        <th class="px-4 py-2 border text-left">Bijlage</th>
+                        <th class="px-4 py-2 border text-left">Verantwoordelijke</th>
+                        @if(auth()->user()->hasPermission('prisoners.interrogations.delete') || auth()->user()->hasRole('admin'))
+                        <th class="px-4 py-2 border text-left">Acties</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($prisoner->interrogations as $interrogation)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 border">{{ $interrogation->datum_tijd->format('d-m-Y H:i') }}</td>
+                        <td class="px-4 py-2 border">{{ Str::limit($interrogation->verslag, 100) }}</td>
+                        <td class="px-4 py-2 border">
+                            @if($interrogation->bijlage)
+                                <a href="{{ route('files.view', ['type' => 'interrogations', 'filename' => $interrogation->bijlage]) }}" target="_blank" class="text-blue-500 hover:underline">{{ $interrogation->bijlage_type }}</a>
+                            @else
+                                Geen
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 border">{{ $interrogation->user->name ?? 'Onbekend' }}</td>
+                        @if(auth()->user()->hasPermission('prisoners.interrogations.delete') || auth()->user()->hasRole('admin'))
+                        <td class="px-4 py-2 border">
+                            <form action="{{ route('prisoners.interrogations.delete', $interrogation->id) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit verhoor wilt verwijderen?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                        @endif
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-600">
+                Geen verhoren beschikbaar.
+            </div>
+            @endif
         </div>
+        @endif
 
-        <button type="submit" class="bg-brown-500 hover:bg-brown-600 text-white text-sm font-semibold px-6 py-3 rounded-lg shadow-md">
-            Verplaats Gevangene naar Andere Cel
-        </button>
-        
-    </form>
-</div><form method="POST" action="{{ route('prisoners.release', $prisoner->id) }}">
-    @csrf
-    <button type="submit"
-        onclick="return confirm('Weet je zeker dat je deze gevangene wilt vrijlaten?')"
-        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-        Laat gevangene vrij
-    </button>
-</form>
+        <!-- Verplaatsingsformulier -->
+        @if(auth()->user()->hasPermission('prisoners.move') || auth()->user()->hasRole('admin'))
+        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-900">Verplaats Gevangene</h3>
+            <p class="text-sm text-gray-500">Gebruik dit formulier om de gevangene naar een andere cel te verplaatsen.</p>
 
+            <form action="{{ route('prisoners.move', $prisoner->id) }}" method="POST">
+                @csrf
+                @method('POST')
 
+                <!-- Reden voor Verplaatsing -->
+                <div class="mb-4">
+                    <label for="reden" class="block text-sm font-medium text-gray-700">Reden voor Verplaatsing</label>
+                    <textarea id="reden" name="reden" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                              @if(auth()->user()->hasRole('bewaker')) disabled @endif
+                              required></textarea>
+                </div>
+
+                <!-- Nieuwe Cel Selectie -->
+                <div class="mb-4">
+                    <label for="to_cell_id" class="block text-sm font-medium text-gray-700">Nieuwe Cel</label>
+                    <select name="to_cell_id" id="to_cell_id" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="" disabled selected>Selecteer een cel</option>
+                        @foreach($availableCells as $cell)
+                            @if(!$currentCell || $cell->id != $currentCell->id)
+                                <option value="{{ $cell->id }}">{{ $cell->afdeling }}, Cel {{ $cell->celnummer }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit" class="bg-brown-500 hover:bg-brown-600 text-white text-sm font-semibold px-6 py-3 rounded-lg shadow-md">
+                    Verplaats Gevangene naar Andere Cel
+                </button>
+            </form>
         </div>
+        @endif
+
+        <!-- Vrijlating -->
+        @if(auth()->user()->hasPermission('prisoners.release') || auth()->user()->hasRole('admin'))
+        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-900">Vrijlating</h3>
+            <p class="text-sm text-gray-500">Gebruik dit formulier om de gevangene vrij te laten.</p>
+            
+            <form method="POST" action="{{ route('prisoners.release', $prisoner->id) }}">
+                @csrf
+                <div class="mb-4">
+                    <label for="reden" class="block text-sm font-medium text-gray-700">Reden voor Vrijlating</label>
+                    <textarea id="reden" name="reden" rows="3" class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                </div>
+                <button type="submit"
+                    onclick="return confirm('Weet je zeker dat je deze gevangene wilt vrijlaten?')"
+                    class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md">
+                    Laat gevangene vrij
+                </button>
+            </form>
+        </div>
+        @endif
 
         <!-- Bewegingshistorie Tabel -->
-@if($prisoner->movementHistory && $prisoner->movementHistory->isNotEmpty())
-<div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
-    <h3 class="text-lg font-semibold text-gray-900">Bewegingshistorie</h3>
-    <p class="text-sm text-gray-500">De onderstaande verplaatsingen en registraties zijn gemaakt voor deze gedetineerde.</p>
-    <table class="min-w-full mt-4 border-collapse">
-        <thead>
-            <tr>
-                <th class="px-4 py-2 border text-left">Datum</th>
-                <th class="px-4 py-2 border text-left">Van Cel</th>
-                <th class="px-4 py-2 border text-left">Naar Cel</th>
-                <th class="px-4 py-2 border text-left">Reden</th>
-                <th class="px-4 py-2 border text-left">Verantwoordelijke</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($prisoner->movementHistory->sortByDesc('datum_start') as $movement)
-            <tr>
-                <td class="px-4 py-2 border">{{ $movement->datum_start->format('d-m-Y') }}</td>
-                <td class="px-4 py-2 border">
-                    @if($movement->fromCell)
-                        {{ $movement->fromCell->afdeling }}, Cel {{ $movement->fromCell->celnummer }}
-                    @else
-                        Geen (Eerste plaatsing)
-                    @endif
-                </td>
-                <td class="px-4 py-2 border">
-                    @if($movement->toCell)
-                        {{ $movement->toCell->afdeling }}, Cel {{ $movement->toCell->celnummer }}
-                    @else
-                        Vrijlating
-                    @endif
-                </td>
-                <td class="px-4 py-2 border">{{ $movement->reden }}</td>
-                <td class="px-4 py-2 border">{{ $movement->bewaker->name ?? 'Onbekend' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@else
-<div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
-    <h3 class="text-lg font-semibold text-gray-900">Bewegingshistorie</h3>
-    <p class="text-sm text-gray-500">Geen bewegingshistorie beschikbaar voor deze gevangene.</p>
-</div>
-@endif
+        @if(auth()->user()->hasPermission('prisoners.movement.view') || auth()->user()->hasRole('admin'))
+        <div class="px-6 py-5 bg-gray-50 shadow-sm rounded-lg mt-6">
+            <h3 class="text-lg font-semibold text-gray-900">Bewegingshistorie</h3>
+            <p class="text-sm text-gray-500">De onderstaande verplaatsingen en registraties zijn gemaakt voor deze gedetineerde.</p>
+            @if($prisoner->movementHistory && $prisoner->movementHistory->isNotEmpty())
+            <table class="min-w-full mt-4 border-collapse">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 border text-left">Datum</th>
+                        <th class="px-4 py-2 border text-left">Van Cel</th>
+                        <th class="px-4 py-2 border text-left">Naar Cel</th>
+                        <th class="px-4 py-2 border text-left">Reden</th>
+                        <th class="px-4 py-2 border text-left">Verantwoordelijke</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($prisoner->movementHistory->sortByDesc('datum_start') as $movement)
+                    <tr>
+                        <td class="px-4 py-2 border">{{ $movement->datum_start->format('d-m-Y') }}</td>
+                        <td class="px-4 py-2 border">
+                            @if($movement->fromCell)
+                                {{ $movement->fromCell->afdeling }}, Cel {{ $movement->fromCell->celnummer }}
+                            @else
+                                Geen (Eerste plaatsing)
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 border">
+                            @if($movement->toCell)
+                                {{ $movement->toCell->afdeling }}, Cel {{ $movement->toCell->celnummer }}
+                            @else
+                                Vrijlating
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 border">{{ $movement->reden }}</td>
+                        <td class="px-4 py-2 border">{{ $movement->bewaker->name ?? 'Onbekend' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div class="p-4 bg-gray-100 rounded-lg text-center text-gray-600">
+                Geen bewegingshistorie beschikbaar voor deze gevangene.
+            </div>
+            @endif
+        </div>
+        @endif
 
         <div class="px-4 py-3 bg-gray-50 text-right sm:px-6 mt-6">
             <a href="{{ route('prisoners.index') }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md">
@@ -287,30 +515,4 @@
         </div>
     </div>
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const showReleaseFormBtn = document.getElementById('showReleaseFormBtn');
-        const releaseFormModal = document.getElementById('releaseFormModal');
-        const closeReleaseFormBtn = document.getElementById('closeReleaseFormBtn');
-        const cancelReleaseBtn = document.getElementById('cancelReleaseBtn');
-        
-        if (showReleaseFormBtn) {
-            showReleaseFormBtn.addEventListener('click', function() {
-                releaseFormModal.classList.remove('hidden');
-            });
-        }
-        
-        if (closeReleaseFormBtn) {
-            closeReleaseFormBtn.addEventListener('click', function() {
-                releaseFormModal.classList.add('hidden');
-            });
-        }
-        
-        if (cancelReleaseBtn) {
-            cancelReleaseBtn.addEventListener('click', function() {
-                releaseFormModal.classList.add('hidden');
-            });
-        }
-    });
-</script>
 @endsection

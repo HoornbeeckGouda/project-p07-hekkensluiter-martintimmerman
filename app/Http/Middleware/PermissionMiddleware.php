@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class PermissionMiddleware  // <- Dit was verkeerd, stond CheckPermission
+class PermissionMiddleware  
 {
     /**
      * Handle an incoming request.

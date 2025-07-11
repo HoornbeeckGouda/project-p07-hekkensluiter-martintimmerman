@@ -15,7 +15,6 @@ class BlockRole
             return redirect('login');
         }
 
-        // Controlleer op geblokkeerde rol
         foreach ($roles as $role) {
             if ($request->user()->hasRole($role)) {
                 abort(403, 'Je hebt geen toegang tot deze pagina.');

@@ -1,3 +1,4 @@
+```blade
 <nav x-data="{ open: false }" class="bg-gradient-to-r from-[#5D4037] to-[#8D6E63] text-white fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-3 shadow-lg">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto">
@@ -28,7 +29,7 @@
                 
                 <x-nav-link :href="route('prisoners.index')" :active="request()->routeIs('prisoners.index')" class="nav-button bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold no-underline border border-[#EFEBE9] transition hover:bg-[#795548] hover:scale-105 hover:shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 40 11-8 0 4 4 0 018 0z" />
                     </svg>
                     {{ __('Gevangenen') }}
                 </x-nav-link>
@@ -38,21 +39,28 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {{ __('Logs') }}
-                    
                 </x-nav-link>
+
+                @if(auth()->user() && auth()->user()->hasPermission('admin.access'))
+                    <x-nav-link :href="route('admin.roles.index')" :active="request()->routeIs('admin.roles.index')" class="nav-button bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold no-underline border border-[#EFEBE9] transition hover:bg-[#795548] hover:scale-105 hover:shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {{ __('Rollen Beheer') }}
+                    </x-nav-link>
+                @endif
             </div>
 
             <!-- Settings Dropdown -->
             <div class="nav-right hidden sm:flex sm:items-center">
                 @auth
-                    <x-dropdown allign="right" width="48">
+                    <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="login-button flex items-center bg-[#5D4037] text-[#EFEBE9] px-4 py-2 rounded-lg border border-[#EFEBE9] font-semibold transition hover:bg-[#4E342E] hover:text-white hover:shadow-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 <div>{{ Auth::user()->name }}</div>
-
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -70,9 +78,8 @@
                             </x-dropdown-link>
 
                             <!-- Authentication -->
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method = "POST" action="{{ route('logout') }}">
                                 @csrf
-
                                 <x-dropdown-link :href="route('logout')"
                                         onclick="event.preventDefault();
                                                     this.closest('form').submit();" class="flex items-center hover:bg-[#D7CCC8] hover:text-[#3E2723]">
@@ -87,7 +94,7 @@
                 @else
                     <a href="{{ route('login') }}" class="login-button flex items-center bg-[#5D4037] text-[#EFEBE9] px-4 py-2 rounded-lg border border-[#EFEBE9] font-semibold transition hover:bg-[#4E342E] hover:text-white hover:shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
                         {{ __('Inloggen') }}
                     </a>
@@ -136,6 +143,15 @@
                 </svg>
                 {{ __('Gebruiker Logs') }}
             </x-responsive-nav-link>
+
+            @if(auth()->user() && auth()->user()->hasPermission('admin.access'))
+                <x-responsive-nav-link :href="route('admin.roles.index')" :active="request()->routeIs('admin.roles.index')" class="block bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold border border-[#EFEBE9] mb-2 transition hover:bg-[#795548] hover:shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    {{ __('Rollen Beheer') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -157,13 +173,12 @@
                     <!-- Authentication -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-
                         <x-responsive-nav-link :href="route('logout')"
                                 class="block bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold border border-[#EFEBE9] mb-2 transition hover:bg-[#795548] hover:shadow-md flex items-center"
                                 onclick="event.preventDefault();
                                             this.closest('form').submit();">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                <path stroke captive="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             {{ __('Log Out') }}
                         </x-responsive-nav-link>
@@ -173,7 +188,7 @@
                 <div class="mt-3 space-y-1 px-4">
                     <a href="{{ route('login') }}" class="block bg-[#6D4C41] text-[#EFEBE9] px-4 py-2 rounded-lg font-semibold border border-[#EFEBE9] mb-2 transition hover:bg-[#795548] hover:shadow-md flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
                         {{ __('Inloggen') }}
                     </a>
@@ -185,3 +200,4 @@
 
 <!-- Add spacing to compensate for fixed navbar -->
 <div class="pt-20"></div>
+```

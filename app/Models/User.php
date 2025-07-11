@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Role;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -22,7 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_active', // Voor het deactiveren van gebruikers
+        'is_active',
+        'two_factor_enabled', 
     ];
 
     /**
@@ -55,7 +56,7 @@ class User extends Authenticatable
             return $this->roles->contains('name', $roles);
         }
         
-        // Check if user has any of the given roles
+     
         foreach ($roles as $role) {
             if ($this->roles->contains('name', $role)) {
                 return true;
@@ -127,7 +128,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'two_factor_enabled' => 'boolean', 
         ];
     }
-    
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param string $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 }

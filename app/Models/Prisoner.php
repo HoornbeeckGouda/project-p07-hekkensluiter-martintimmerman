@@ -69,6 +69,15 @@ class Prisoner extends Model
         return $this->hasMany(PrisonerLog::class);
     }
 
+    public function antecedents()
+{
+    return $this->hasMany(Antecedent::class);
+}
+
+public function interrogations()
+{
+    return $this->hasMany(Interrogation::class);
+}
     public function getFullNameAttribute()
     {
         $name = $this->roepnaam ?? '';

@@ -19,14 +19,12 @@ class CheckRole
             return redirect('login');
         }
 
-        // COntrole op toegewzen rollen
         foreach ($roles as $role) {
             if ($request->user()->hasRole($role)) {
                 return $next($request);
             }
         }
 
-        // Als gebruiker geen rol heeft
         abort(403, 'Onvoldoende rechten om deze pagina te bekijken.');
     }
 }

@@ -5,51 +5,29 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Permission;
-use App\Models\Prisoner;
-use App\Models\Cell;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
-class AdminController extends Controller
+class UserController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:admin.access');
+        $this->middleware('permission:admin.users.view')->only(['index']);
+        $this->middleware('permission:admin.users.create')->only(['create', 'store']);
+        $this->middleware('permission:admin.users.edit')->only(['edit', 'update']);
+        $this->middleware('permission:admin.users.delete')->only(['destroy', 'bulkAction']);
     }
 
     /**
-     * Dashboard voor beheerders
+     * Display a listing of the users with search and filters
      */
-    public function dashboard()
-    {
-        $statistics = [
-            'total_users' => User::count(),
-            'active_users' => User::where('is_active', true)->count(),
-            'total_prisoners' => Prisoner::count(),
-            'occupied_cells' => Cell::whereHas('currentPrisoners')->count(),
-            'total_cells' => Cell::count(),
-            'total_roles' => Role::count(),
-            'total_permissions' => Permission::count(),
-        ];
-
-        $recent_users = User::with('roles')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        return view('admin.dashboard', compact('statistics', 'recent_users'));
-    }
-
-    /**
-     * Gebruikersbeheer overzicht
-     */
-    public function users(Request $request)
+    public function index(Request $request)
     {
         $query = User::with('roles');
 
-        // Zoekfunctionaliteit
-        if ($request->has('search')) {
+        if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -57,17 +35,17 @@ class AdminController extends Controller
             });
         }
 
-        // Filter op rol
         if ($request->has('role') && $request->role != '') {
             $query->whereHas('roles', function($q) use ($request) {
                 $q->where('name', $request->role);
             });
         }
 
-        // Filter op status
         if ($request->has('status') && $request->status != '') {
             $query->where('is_active', $request->status == 'active');
         }
+
+        $query->orderBy('name', 'asc');
 
         $users = $query->paginate(15);
         $roles = Role::all();
@@ -76,54 +54,105 @@ class AdminController extends Controller
     }
 
     /**
-     * Rollenbeheer overzicht
+     * Show the form for creating a new user
      */
-    public function roles()
+    public function create()
     {
-        $roles = Role::withCount('users', 'permissions')->get();
-        return view('admin.roles.index', compact('roles'));
+        $roles = Role::all();
+        return view('admin.users.create', compact('roles'));
     }
 
     /**
-     * Permissionsbeheer - vinkjes overzicht
+     * Store a newly created user
      */
-    public function permissions()
-    {
-        $roles = Role::with('permissions')->get();
-        $permissions = Permission::groupedPermissions();
-        
-        return view('admin.permissions.index', compact('roles', 'permissions'));
-    }
-
-    /**
-     * Update permissions voor een rol
-     */
-    public function updateRolePermissions(Request $request, Role $role)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'is_active' => 'boolean',
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,id',
         ]);
 
-        // Sync permissions met de rol
-        $role->permissions()->sync($validated['permissions'] ?? []);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'is_active' => $validated['is_active'] ?? true,
+            'two_factor_enabled' => true,
+        ]);
 
-        return redirect()->route('admin.permissions')
-            ->with('success', "Rechten voor rol '{$role->name}' succesvol bijgewerkt.");
+        $user->roles()->sync($validated['roles']);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Gebruiker succesvol aangemaakt.');
     }
 
     /**
-     * Systeem instellingen
+     * Show the form for editing the specified user
      */
-    public function settings()
+    public function edit(User $user)
     {
-        return view('admin.settings');
+        $roles = Role::all();
+        $userRoles = $user->roles->pluck('id')->toArray();
+        return view('admin.users.edit', compact('user', 'roles', 'userRoles'));
     }
 
     /**
-     * Bulk acties voor gebruikers
+     * Update the specified user
      */
-    public function bulkUserAction(Request $request)
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'is_active' => 'boolean',
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,id',
+        ]);
+
+        $userData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'is_active' => $validated['is_active'] ?? true,
+            'two_factor_enabled' => true, // Behoud 2FA
+        ];
+
+        if (!empty($validated['password'])) {
+            $userData['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($userData);
+        $user->roles()->sync($validated['roles']);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Gebruiker succesvol bijgewerkt.');
+    }
+
+    /**
+     * Remove the specified user
+     */
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Je kunt je eigen account niet verwijderen.');
+        }
+
+        $user->roles()->detach();
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Gebruiker succesvol verwijderd.');
+    }
+
+    /**
+     * Handle bulk actions for users
+     */
+    public function bulkAction(Request $request)
     {
         $validated = $request->validate([
             'action' => 'required|in:activate,deactivate,delete',
@@ -150,12 +179,24 @@ class AdminController extends Controller
                     return $id != auth()->id();
                 });
                 
-                User::whereIn('id', $filteredIds)->delete();
-                $message = count($filteredIds) . ' gebruiker(s) verwijderd.';
+                if (count($filteredIds) > 0) {
+                    // Detach roles eerst
+                    foreach ($filteredIds as $userId) {
+                        $user = User::find($userId);
+                        if ($user) {
+                            $user->roles()->detach();
+                        }
+                    }
+                    
+                    User::whereIn('id', $filteredIds)->delete();
+                    $message = count($filteredIds) . ' gebruiker(s) verwijderd.';
+                } else {
+                    $message = 'Geen gebruikers verwijderd. Je kunt jezelf niet verwijderen.';
+                }
                 break;
         }
 
-        return redirect()->route('admin.users')
+        return redirect()->route('admin.users.index')
             ->with('success', $message);
     }
 }

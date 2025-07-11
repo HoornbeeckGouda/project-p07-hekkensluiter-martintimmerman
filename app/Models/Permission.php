@@ -12,7 +12,7 @@ class Permission extends Model
     protected $fillable = [
         'name',
         'description',
-        'group', // Groepering voor permissions (bijv. 'users', 'prisoners', 'cells')
+        'group', 
     ];
 
     /**

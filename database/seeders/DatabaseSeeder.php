@@ -2,72 +2,84 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // Voeg rollen toe
         $this->call(RoleSeeder::class);
         
-        // BELANGRIJK: Voeg permissions toe VOOR users
         $this->call(PermissionSeeder::class);
 
-        // Voeg specifieke gebruikers toe
         $this->createSpecificUsers();
+
+        $this->call(TwoFactorSeeder::class);
     }
 
     public function createSpecificUsers()
     {
-        // Maak admin gebruiker aan
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@hoornhack.com',
-            'password' => bcrypt('password'),
-            'is_active' => true // Voeg dit toe
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@hoornhack.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
         $adminRole = Role::where('name', 'admin')->first();
-        if ($adminRole) {
-            $admin->roles()->attach($adminRole);
+        if ($adminRole && !$admin->hasRole('admin')) {
+            $admin->roles()->sync([$adminRole->id]);
         }
 
-        // Maak directeur gebruiker aan
-        $directeur = User::create([
-            'name' => 'Directeur',
-            'email' => 'directeur@hoornhack.com',
-            'password' => bcrypt('password'),
-            'is_active' => true
-        ]);
+        $directeur = User::firstOrCreate(
+            ['email' => 'directeur@hoornhack.com'],
+            [
+                'name' => 'Directeur',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
         $directeurRole = Role::where('name', 'directeur')->first();
-        if ($directeurRole) {
-            $directeur->roles()->attach($directeurRole);
+        if ($directeurRole && !$directeur->hasRole('directeur')) {
+            $directeur->roles()->sync([$directeurRole->id]);
         }
 
-        // Maak coordinator gebruiker aan
-        $coordinator = User::create([
-            'name' => 'Coordinator',
-            'email' => 'coordinator@hoornhack.com',
-            'password' => bcrypt('password'),
-            'is_active' => true
-        ]);
+        $coordinator = User::firstOrCreate(
+            ['email' => 'coordinator@hoornhack.com'],
+            [
+                'name' => 'Coordinator',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
         $coordinatorRole = Role::where('name', 'coordinator')->first();
-        if ($coordinatorRole) {
-            $coordinator->roles()->attach($coordinatorRole);
+        if ($coordinatorRole && !$coordinator->hasRole('coordinator')) {
+            $coordinator->roles()->sync([$coordinatorRole->id]);
         }
 
-        // Maak bewaker gebruiker aan
-        $bewaker = User::create([
-            'name' => 'Bewaker',
-            'email' => 'bewaker@hoornhack.com',
-            'password' => bcrypt('password'),
-            'is_active' => true
-        ]);
+        $bewaker = User::firstOrCreate(
+            ['email' => 'bewaker@hoornhack.com'],
+            [
+                'name' => 'Bewaker',
+                'password' => Hash::make('password'),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
         $bewakerRole = Role::where('name', 'bewaker')->first();
-        if ($bewakerRole) {
-            $bewaker->roles()->attach($bewakerRole);
+        if ($bewakerRole && !$bewaker->hasRole('bewaker')) {
+            $bewaker->roles()->sync([$bewakerRole->id]);
         }
     }
 }

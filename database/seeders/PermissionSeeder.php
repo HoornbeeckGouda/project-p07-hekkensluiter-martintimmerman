@@ -20,7 +20,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'admin.roles.manage', 'description' => 'Rollen beheren', 'group' => 'admin'],
             ['name' => 'admin.permissions.manage', 'description' => 'Rechten beheren', 'group' => 'admin'],
             ['name' => 'admin.settings', 'description' => 'Systeeminstellingen', 'group' => 'admin'],
-            
         ];
 
         // Prisoner permissions
@@ -44,14 +43,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'cells.delete', 'description' => 'Cellen verwijderen', 'group' => 'cells'],
         ];
 
-        // User permissions
-        $userPermissions = [
-            ['name' => 'users.view', 'description' => 'Gebruikers bekijken', 'group' => 'users'],
-            ['name' => 'users.create', 'description' => 'Gebruikers aanmaken', 'group' => 'users'],
-            ['name' => 'users.edit', 'description' => 'Gebruikers bewerken', 'group' => 'users'],
-            ['name' => 'users.delete', 'description' => 'Gebruikers verwijderen', 'group' => 'users'],
-        ];
-
         // Reports permissions
         $reportPermissions = [
             ['name' => 'reports.view', 'description' => 'Rapporten bekijken', 'group' => 'reports'],
@@ -64,41 +55,46 @@ class PermissionSeeder extends Seeder
             $adminPermissions,
             $prisonerPermissions,
             $cellPermissions,
-            $userPermissions,
             $reportPermissions
         );
 
         foreach ($allPermissions as $permission) {
-            Permission::create($permission);
+            Permission::firstOrCreate(
+                ['name' => $permission['name']],
+                [
+                    'description' => $permission['description'],
+                    'group' => $permission['group'],
+                ]
+            );
         }
 
-        // Permissions toewijzen aan rollen
         $this->assignPermissionsToRoles();
     }
 
     private function assignPermissionsToRoles()
     {
-        // Admin krijgt alle rechten
         $adminRole = Role::where('name', 'admin')->first();
         if ($adminRole) {
             $allPermissions = Permission::all();
             $adminRole->permissions()->sync($allPermissions->pluck('id'));
         }
 
-        // Directeur krijgt bijna alle rechten
         $directeurRole = Role::where('name', 'directeur')->first();
         if ($directeurRole) {
             $directeurPermissions = Permission::whereNotIn('name', [
                 'admin.permissions.manage',
-                'admin.settings'
+                'admin.settings',
             ])->get();
             $directeurRole->permissions()->sync($directeurPermissions->pluck('id'));
         }
 
-        // Coordinator krijgt operationele rechten
         $coordinatorRole = Role::where('name', 'coordinator')->first();
         if ($coordinatorRole) {
             $coordinatorPermissions = Permission::whereIn('name', [
+                'admin.users.view',
+                'admin.users.create',
+                'admin.users.edit',
+                'admin.users.delete',
                 'prisoners.view',
                 'prisoners.create',
                 'prisoners.edit',
@@ -109,21 +105,19 @@ class PermissionSeeder extends Seeder
                 'cells.view',
                 'cells.create',
                 'cells.edit',
-                'users.view',
                 'reports.view',
-                'logs.view'
+                'logs.view',
             ])->get();
             $coordinatorRole->permissions()->sync($coordinatorPermissions->pluck('id'));
         }
 
-        // Bewaker krijgt beperkte rechten
         $bewakerRole = Role::where('name', 'bewaker')->first();
         if ($bewakerRole) {
             $bewakerPermissions = Permission::whereIn('name', [
                 'prisoners.view',
                 'prisoners.logs.view',
                 'prisoners.logs.create',
-                'cells.view'
+                'cells.view',
             ])->get();
             $bewakerRole->permissions()->sync($bewakerPermissions->pluck('id'));
         }
